@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -30,25 +30,46 @@ const yearData = [
   { year: 2050, savings: 120, investments: 10 },
 ];
 
+// Calculate max values for proper scaling
+const MAX_SAVINGS = Math.max(...yearData.map(item => item.savings));
+const MAX_INVESTMENTS = Math.max(...yearData.map(item => item.investments));
+
 export const FinanceTracker = () => {
   const [index, setIndex] = useState(0);
-  const savingsLevel = useSharedValue(20);
-  const investLevel = useSharedValue(20);
+  // Initialize both to equal levels for the first year data
+  const initialSavingsPercent = (yearData[0].savings / MAX_SAVINGS) * 100;
+  const initialInvestPercent = (yearData[0].investments / MAX_INVESTMENTS) * 100;
+  
+  const savingsLevel = useSharedValue(initialSavingsPercent);
+  const investLevel = useSharedValue(initialInvestPercent);
+
+  // Update levels when component mounts to ensure proper initial state
+  useEffect(() => {
+    updateLevels(0);
+  }, []);
+
+  const updateLevels = (idx) => {
+    // Calculate percentages based on max values
+    const savingsPercent = (yearData[idx].savings / MAX_SAVINGS) * 100;
+    const investPercent = (yearData[idx].investments / MAX_INVESTMENTS) * 100;
+    
+    savingsLevel.value = withTiming(savingsPercent, { duration: 500 });
+    investLevel.value = withTiming(investPercent, { duration: 500 });
+  };
 
   const onSliderChange = (val) => {
     const i = Math.floor(val);
     setIndex(i);
-    savingsLevel.value = withTiming((yearData[i].savings / 120) * 100, { duration: 500 });
-    investLevel.value = withTiming((yearData[i].investments / 10) * 100, { duration: 500 });
+    updateLevels(i);
   };
 
   const savingsStyle = useAnimatedStyle(() => ({
-    height: `${Math.max(1, Math.min(95, savingsLevel.value))}%`,
+    height: `${Math.max(5, Math.min(95, savingsLevel.value))}%`,
     zIndex: 1,
   }));
 
   const investStyle = useAnimatedStyle(() => ({
-    height: `${Math.max(1, Math.min(95, investLevel.value))}%`,
+    height: `${Math.max(5, Math.min(95, investLevel.value))}%`,
     zIndex: 1,
   }));
 
@@ -112,32 +133,32 @@ export const FinanceTracker = () => {
               minimumTrackTintColor="#59f"
               maximumTrackTintColor="#EAEAEA"
             />
-            
+
             {/* Visual track elements */}
             <View style={styles.customTrack}>
               <View style={[styles.filledTrack, { width: `${(index / 5) * 100}%` }]} />
             </View>
-            
+
             {/* Custom thumb image */}
-            <View 
+            <View
               style={[
-                styles.customThumb, 
+                styles.customThumb,
                 { left: calculateThumbPosition() }
               ]}
             >
               <Image source={sliderpick} style={styles.thumbImage} />
             </View>
           </View>
-          
+
           {/* Year indicators below slider */}
           <View style={styles.yearIndicators}>
             {yearData.map((_, i) => (
-              <TouchableOpacity 
-                key={i} 
+              <TouchableOpacity
+                key={i}
                 style={styles.indicatorTouchable}
                 onPress={() => onSliderChange(i)}
               >
-                <View 
+                <View
                   style={[
                     styles.yearIndicator,
                     index === i && styles.yearIndicatorActive
@@ -147,13 +168,13 @@ export const FinanceTracker = () => {
             ))}
           </View>
         </View>
-        
+
         <View style={styles.yearLabels}>
           {yearData.map((item, i) => (
-            <Text 
-              key={i} 
+            <Text
+              key={i}
               style={[
-                styles.yearText, 
+                styles.yearText,
                 index === i && styles.yearTextSelected
               ]}
             >
@@ -191,6 +212,8 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     justifyContent: "flex-end",
     position: "relative",
+    marginTop: 10,
+    marginBottom: 10,
   },
   tick: {
     position: "absolute",

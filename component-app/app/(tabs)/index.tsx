@@ -7,11 +7,12 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { View, Text } from 'react-native';
 import { FinanceTracker } from '@/components/example-components/FinancialTracker';
+import ReceiptTower from '@/components/example-components/ReceiptTower';
 
 export default function HomeScreen() {
   return (
     <View>
-     <FinanceTracker />
+     <ReceiptTower selectedYearIndex={0}/>
     </View>
   );
 }
